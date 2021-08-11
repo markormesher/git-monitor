@@ -97,7 +97,7 @@ async function getRepoStatus(path: string): Promise<RepoStatus> {
   }
 
   const statusCheck = await execAsync(`${env} ${gitCmd} status --porcelain=v1`);
-  const statuses = statusCheck.stdout.trim().split("\n").map((line) => line.substr(0, 2));
+  const statuses = statusCheck.stdout.trim().split("\n").map((line) => line.substr(0, 2)).filter((s) => s !== "");
 
   if (statuses.indexOf("??") >= 0) {
     return RepoStatus.UntrackedFiles;
