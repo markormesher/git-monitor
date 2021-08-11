@@ -103,7 +103,7 @@ async function getRepoStatus(path: string): Promise<RepoStatus> {
     return RepoStatus.UntrackedFiles;
   }
 
-  if (statuses.length > 1) {
+  if (statuses.length > 0) {
     return RepoStatus.UncommittedChanges;
   }
 
