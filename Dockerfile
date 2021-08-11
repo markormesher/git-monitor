@@ -3,10 +3,10 @@ WORKDIR /git-monitor
 
 RUN apk add --no-cache git
 
-COPY ./package.json ./yarn.lock .
+COPY ./package.json ./yarn.lock ./
 RUN yarn install
 
-COPY ./server.ts .
+COPY ./server.ts ./
 RUN yarn tsc server.ts && yarn uglifyjs server.js -c -m -o server.js
 
 RUN rm -rf node_modules
