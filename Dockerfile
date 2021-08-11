@@ -19,8 +19,7 @@ RUN rm -rf server.ts \
   /opt/yarn* \
   /tmp
 
-EXPOSE 3000
-
 FROM scratch
 COPY --from=build / /
+EXPOSE 3000
 ENTRYPOINT ["node", "/git-monitor/server.js", "/config.json"]
