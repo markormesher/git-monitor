@@ -127,6 +127,7 @@ function renderOutput(results: [IProject, RepoStatus][]): string {
 <html>
 <head>
 <title>Git Monitor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 <style type="text/css">.icon-text { align-items: center; }</style>
