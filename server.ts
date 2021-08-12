@@ -96,6 +96,10 @@ async function getRepoStatus(path: string): Promise<RepoStatus> {
     return RepoStatus.NoCommitsYet;
   }
 
+  if (logCheck.stderr.indexOf("fatal") >= 0) {
+    return RepoStatus.UnknownError;
+  }
+
   const statusCheck = await execAsync(`${env} ${gitCmd} status --porcelain=v1`);
   const statuses = statusCheck.stdout.trim().split("\n").map((line) => line.substr(0, 2)).filter((s) => s !== "");
 
