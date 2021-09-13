@@ -5,6 +5,7 @@ import * as http from "http";
 interface IProject {
   readonly name: string;
   readonly path: string;
+  readonly gitDir?: string;
 }
 
 interface IConfig {
@@ -75,13 +76,13 @@ async function execAsync(command: string): Promise<{ stdout: string, stderr: str
   });
 }
 
-async function getRepoStatus(path: string): Promise<RepoStatus> {
+async function getRepoStatus(projectPath: string, gitDir: string): Promise<RepoStatus> {
   // outcomes are ordered most-to-least serious
 
   const env = "GIT_DISCOVERY_ACROSS_FILESYSTEM=true";
-  const gitCmd = `git -C "${path}"`;
+  const gitCmd = `git --work-tree="${projectPath}" --git-dir="${gitDir}"`;
 
-  const existsCheck = await execAsync(`ls "${path}"`);
+  const existsCheck = await execAsync(`ls "${projectPath}"`);
   if (existsCheck.stderr?.indexOf("No such file or directory") >= 0) {
     return RepoStatus.PathNotFound;
   }
@@ -204,7 +205,7 @@ function renderOutput(results: [IProject, RepoStatus][]): string {
   const requestListener: http.RequestListener = async (request, response) => {
     const statuses: [IProject, RepoStatus][] = await Promise.all(config.projects.map(async (project) => {
       try {
-        const status = await getRepoStatus(project.path);
+        const status = await getRepoStatus(project.path, project.gitDir || `${project.path}/.git`);
         return [project, status] as [IProject, RepoStatus];
       } catch (error) {
         return [project, RepoStatus.UnknownError] as [IProject, RepoStatus];
