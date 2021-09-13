@@ -21,7 +21,9 @@ services:
     volumes:
       - ${PWD}/config.json:/config.json:ro
       - ~/projects/git-monitor:/projects/git-monitor:ro
-      - ~/documents/my-novel:/project/novel:ro
+      - ~/documents/my-novel:/projects/novel:ro
+      - ~:/projects/yadm:ro
+      - ~/.config/yadm/repo.git:/projects/yadm-git:ro
     ports:
       - 3000:3000
 ```
@@ -40,12 +42,19 @@ Each mounted project needs to be defined in the config file in the following for
     {
       "name": "My Awesome Novel",
       "path": "/projects/novel"
+    },
+    {
+      "name": "YADM",
+      "path": "/projects/yadm",
+      "gitDir": "/projects/yadm-git"
     }
   ]
 }
 ```
 
 Note that the paths in the config file _must match their mount points in the container_, not the path on the host.
+
+By default, Git Monitor will assume your project's Git directory exists at `${path}/.git`. If this is not the case, you can also specify a `gitDir` property on a project, as in the last example above. This is useful for dotfile projects; with YADM for example, the project path is usually `~` but the Git directory lives at `~/.config/yadm/repo.git`
 
 ### Networking
 
