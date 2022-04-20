@@ -1,4 +1,4 @@
-FROM node:lts-alpine as build
+FROM node:16.14.2-alpine as build
 WORKDIR /git-monitor
 
 RUN apk add --no-cache git
