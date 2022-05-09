@@ -6,10 +6,18 @@ interface IProject {
   readonly name: string;
   readonly path: string;
   readonly gitDir?: string;
+
+  // generated later
+  repoStatus?: RepoStatus;
+}
+
+interface IGroup {
+  readonly title: string;
+  readonly projects: IProject[];
 }
 
 interface IConfig {
-  readonly projects: IProject[];
+  readonly groups: IGroup[];
 }
 
 enum RepoStatus {
@@ -136,7 +144,7 @@ async function getRepoStatus(projectPath: string, gitDir: string): Promise<RepoS
   return RepoStatus.Okay;
 }
 
-function renderOutput(results: [IProject, RepoStatus][]): string {
+function renderOutput(config: IConfig): string {
   let output = `
 <html>
 <head>
@@ -149,30 +157,36 @@ function renderOutput(results: [IProject, RepoStatus][]): string {
 <body>
 <div class="section">
 <div class="container">
-<h1 class="title">Git Monitor</h1>
+`;
+
+  for (const group of config.groups) {
+    output += `
+<h1 class="title">${group.title}</h1>
 <div class="columns is-multiline">
 `;
 
-  for (const [project, status] of results) {
-    output += `
+    for (const project of group.projects) {
+      output += `
 <div class="column is-one-third">
   <div class="card">
     <div class="card-content">
       <div class="icon-text">
-        <span class="icon is-large ${getStatusTextClass(status)}">
-          <i class="fas fa-2x ${getStatusIconName(status)}"></i>
+        <span class="icon is-large ${getStatusTextClass(project.repoStatus)}">
+          <i class="fas fa-2x ${getStatusIconName(project.repoStatus)}"></i>
         </span>
-        <span class="title is-4 ${getStatusTextClass(status)}">${project.name}</span>
+        <span class="title is-4 ${getStatusTextClass(project.repoStatus)}">${project.name}</span>
       </div>
-      <p class="content block">${status}</p>
+      <p class="content block">${project.repoStatus}</p>
     </div>
   </div>
 </div>
 `;
+    }
+
+    output += `</div>`;
   }
 
   output += `
-</div>
 </div>
 </div>
 </body>
@@ -192,35 +206,39 @@ function renderOutput(results: [IProject, RepoStatus][]): string {
   const configPath = args[0];
   const config: IConfig = JSON.parse((await fs.readFile(configPath)).toString());
 
-  if (!config.projects || config.projects.length === 0) {
-    console.log("Config must include one or more project");
+  if (!config.groups || config.groups.length === 0) {
+    console.log("Config must include one or more groups");
     return;
   }
 
-  for (const project of config.projects) {
-    if (!project.path || !project.name) {
-      console.log("One or more projects was missing a name or path parameter");
-      return;
+  for (const group of config.groups) {
+    for (const project of group.projects) {
+      if (!project.path || !project.name) {
+        console.log("A project was missing a name and/or path parameter", { project });
+        return;
+      }
     }
   }
 
   console.log("Config read okay!");
 
   const requestListener: http.RequestListener = async (request, response) => {
-    const statuses: [IProject, RepoStatus][] = await Promise.all(
-      config.projects.map(async (project) => {
+    const configWithStatuses = { ...config };
+    for (const group of configWithStatuses.groups) {
+      for (const project of group.projects) {
         try {
           const status = await getRepoStatus(project.path, project.gitDir || `${project.path}/.git`);
-          return [project, status] as [IProject, RepoStatus];
+          project.repoStatus = status;
         } catch (error) {
-          return [project, RepoStatus.UnknownError] as [IProject, RepoStatus];
+          console.log("Error while checking project status", { error, project });
+          project.repoStatus = RepoStatus.UnknownError;
         }
-      }),
-    );
+      }
+    }
 
     response.setHeader("Content-Type", "text/html");
     response.writeHead(200);
-    response.end(renderOutput(statuses));
+    response.end(renderOutput(configWithStatuses));
   };
 
   const server = http.createServer(requestListener);

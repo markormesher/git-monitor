@@ -4,6 +4,8 @@
 
 Git Monitor is a super-simple web dashboard to keep an eye on multiple git repos and show which ones have uncommitted changes, which are behind the remote branch, etc. I created this because I have a habit of tinkering with projects on a server then being lazy about committing the results to somewhere a little more permanent.
 
+![Screenshot](./screenshot.png)
+
 :rocket: Jump to [quick-start example](#quick-start-docker-compose-example).
 
 :whale: See releases on [ghcr.io](https://ghcr.io/markormesher/git-monitor).
@@ -25,19 +27,33 @@ Each mounted project needs to be defined in the config file in the following for
 
 ```json
 {
-  "projects": [
+  "groups": [
     {
-      "name": "Git Monitor",
-      "path": "/projects/git-monitor"
+      "title": "Personal Projects",
+      "projects": [
+        {
+          "name": "Git Monitor",
+          "path": "/projects/git-monitor"
+        },
+        {
+          "name": "My Awesome Novel",
+          "path": "/projects/novel"
+        },
+        {
+          "name": "YADM",
+          "path": "/projects/yadm",
+          "gitDir": "/projects/yadm-git"
+        }
+      ]
     },
     {
-      "name": "My Awesome Novel",
-      "path": "/projects/novel"
-    },
-    {
-      "name": "YADM",
-      "path": "/projects/yadm",
-      "gitDir": "/projects/yadm-git"
+      "title": "Group 2",
+      "projects": [
+        {
+          "name": "Git Monitor",
+          "path": "/projects/git-monitor"
+        }
+      ]
     }
   ]
 }
