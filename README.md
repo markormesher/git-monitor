@@ -1,6 +1,12 @@
+![CircleCI](https://img.shields.io/circleci/build/github/markormesher/git-monitor)
+
 # Git Monitor
 
 Git Monitor is a super-simple web dashboard to keep an eye on multiple git repos and show which ones have uncommitted changes, which are behind the remote branch, etc. I created this because I have a habit of tinkering with projects on a server then being lazy about committing the results to somewhere a little more permanent.
+
+:rocket: Jump to [quick-start example](#quick-start-docker-compose-example).
+
+:whale: See releases on [ghcr.io](https://ghcr.io/markormesher/git-monitor).
 
 ## Usage
 
@@ -11,22 +17,7 @@ Git Monitor requires to things to be mounted to the container as read-only volum
 - A config file, mounted at `/config.json`.
 - Each repo that you wish to monitor, mounted wherever you like.
 
-Here's how to do that with Docker Compose:
-
-```yaml
-version: "3.8"
-services:
-  git-monitor:
-    build: .
-    volumes:
-      - ${PWD}/config.json:/config.json:ro
-      - ~/projects/git-monitor:/projects/git-monitor:ro
-      - ~/documents/my-novel:/projects/novel:ro
-      - ~:/projects/yadm:ro
-      - ~/.config/yadm/repo.git:/projects/yadm-git:ro
-    ports:
-      - 3000:3000
-```
+See the [quick-start example](#quick-start-docker-compose-example) for an example using Docker Compose.
 
 ### Config File
 
@@ -59,3 +50,22 @@ By default, Git Monitor will assume your project's Git directory exists at `${pa
 ### Networking
 
 The container listens on port 3000 for HTTP requests. All requests, regardless of path, will return the dashboard. It's recommended to use a reverse proxy like Nginx or Traefik to route requests to the container, handle HTTPS, etc.
+
+## Quick-Start Docker-Compose Example
+
+```yaml
+version: "3.8"
+
+services:
+  git-monitor:
+    image: ghcr.io/markormesher/git-monitor:VERSION
+    restart: unless-stopped
+    volumes:
+      - ${PWD}/config.json:/config.json:ro
+      - ~/projects/git-monitor:/projects/git-monitor:ro
+      - ~/documents/my-novel:/projects/novel:ro
+      - ~:/projects/yadm:ro
+      - ~/.config/yadm/repo.git:/projects/yadm-git:ro
+    ports:
+      - 3000:3000
+```
