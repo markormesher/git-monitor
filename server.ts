@@ -25,7 +25,7 @@ enum RepoStatus {
 }
 
 function getStatusIconName(status: RepoStatus): string {
-  switch(status) {
+  switch (status) {
     case RepoStatus.PathNotFound:
       return "fa-exclamation-circle";
     case RepoStatus.NotAGitRepo:
@@ -48,7 +48,7 @@ function getStatusIconName(status: RepoStatus): string {
 }
 
 function getStatusTextClass(status: RepoStatus): string {
-  switch(status) {
+  switch (status) {
     case RepoStatus.PathNotFound:
       return "has-text-danger";
     case RepoStatus.NotAGitRepo:
@@ -70,8 +70,8 @@ function getStatusTextClass(status: RepoStatus): string {
   }
 }
 
-async function execAsync(command: string): Promise<{ stdout: string, stderr: string, error?: string }> {
-  return new Promise((resolve, reject) => {
+async function execAsync(command: string): Promise<{ stdout: string; stderr: string; error?: string }> {
+  return new Promise((resolve) => {
     exec(command, (error, stdout, stderr) => resolve({ stdout, stderr, error: error?.message }));
   });
 }
@@ -107,7 +107,11 @@ async function getRepoStatus(projectPath: string, gitDir: string): Promise<RepoS
     return RepoStatus.UnknownError;
   }
 
-  const statuses = statusCheck.stdout.trim().split("\n").map((line) => line.substr(0, 2)).filter((s) => s !== "");
+  const statuses = statusCheck.stdout
+    .trim()
+    .split("\n")
+    .map((line) => line.substr(0, 2))
+    .filter((s) => s !== "");
 
   if (statuses.indexOf("??") >= 0) {
     return RepoStatus.UntrackedFiles;
@@ -178,7 +182,7 @@ function renderOutput(results: [IProject, RepoStatus][]): string {
   return output;
 }
 
-(async function() {
+(async function () {
   const args = process.argv.slice(2);
   if (args.length !== 1) {
     console.log(`Usage: node ${process.argv[1]} PATH_TO_CONFIG`);
@@ -203,14 +207,16 @@ function renderOutput(results: [IProject, RepoStatus][]): string {
   console.log("Config read okay!");
 
   const requestListener: http.RequestListener = async (request, response) => {
-    const statuses: [IProject, RepoStatus][] = await Promise.all(config.projects.map(async (project) => {
-      try {
-        const status = await getRepoStatus(project.path, project.gitDir || `${project.path}/.git`);
-        return [project, status] as [IProject, RepoStatus];
-      } catch (error) {
-        return [project, RepoStatus.UnknownError] as [IProject, RepoStatus];
-      }
-    }));
+    const statuses: [IProject, RepoStatus][] = await Promise.all(
+      config.projects.map(async (project) => {
+        try {
+          const status = await getRepoStatus(project.path, project.gitDir || `${project.path}/.git`);
+          return [project, status] as [IProject, RepoStatus];
+        } catch (error) {
+          return [project, RepoStatus.UnknownError] as [IProject, RepoStatus];
+        }
+      }),
+    );
 
     response.setHeader("Content-Type", "text/html");
     response.writeHead(200);
